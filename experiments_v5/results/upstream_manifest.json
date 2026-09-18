@@ -1,0 +1,5 @@
+{
+  "url": "https://ant.isi.edu/software/ddidd/ddidd-0.1.tar.gz",
+  "sha256": "5bb6a592d12c196a27e69dbcdaf01af108ca6837ea38128adcf637e6528f05d6",
+  "patch": "ddidd_adapter/upstream.patch"
+}

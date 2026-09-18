@@ -1,0 +1,753 @@
+--- upstream/ddidd.cc
++++ adapter/ddidd.cc
+@@ -55,7 +55,7 @@
+ // We store delimiters in this array
+ int* delimiters;
+ 
+-void updateresolver(long time, char* ip, int req)
++void updateresolver(long time, const char* ip, int req)
+ {
+   int index = gettwo(ip);
+  
+@@ -73,7 +73,7 @@
+   resolvers[index][ip].lasttime = time;
+ }
+ 
+-void processresolver(long time, char* ip, int req)
++void processresolver(long time, const char* ip, int req)
+ {
+   int index = gettwo(ip);
+   updateresolver(time, ip, req);
+@@ -106,7 +106,7 @@
+       if (!in.good())
+ 	break;      
+       int index = gettwo(ip);
+-      record rec;
++      record rec{};
+       resolvers[index][ip] = rec;
+       record *r = &resolvers[index][ip];
+       
+@@ -604,7 +604,7 @@
+ 	    int outcome = (*fit)->process(ip, outtime, outlen, isquery, queryname, isattack, maxreqs, outttl);
+ 	  }
+       }
+-    return 0;
++    return totaloutcome;
+ }
+ 
+ 
+@@ -799,7 +799,7 @@
+   //      extension, starttime, RUN);
+   
+   //Use for reading pcap files
+-  loadfiles(readfolder.c_str(), process, saveresolvers, "",
++  readfiles(readfolder.c_str(), process, saveresolvers, "",
+  	    extension, starttime, RUN);
+ }
+   
+--- upstream/fq.cc
++++ adapter/fq.cc
+@@ -3,16 +3,16 @@
+ #include "fq.hh"
+ #include <vector>
+ 
+-void FQ::updateresolver(long time, char* ip, int req)
+-{
+-}
+-
+-void FQ::processresolver(long time, char* ip, int req)
+-{
+-}
+-
+-
+-double FQ::shouldfilter(char* ip, long int time, bool instant)
++void FQ::updateresolver(long time, const char* ip, int req)
++{
++}
++
++void FQ::processresolver(long time, const char* ip, int req)
++{
++}
++
++
++double FQ::shouldfilter(const char* ip, long int time, bool instant)
+ {
+ }
+ 
+--- upstream/fq.hh
++++ adapter/fq.hh
+@@ -50,11 +50,11 @@
+   map<string,bool> resolvers[NR];
+   
+   void insert(map<string, int>& m, string str);
+-  void updateresolver(long time, char* ip, int req);
+-  void processresolver(long time, char* ip, int req);
++  void updateresolver(long time, const char* ip, int req);
++  void processresolver(long time, const char* ip, int req);
+   void remember(string srcc, int ttl);
+   
+-  double shouldfilter(char* ip, long int time, bool instant);
++  double shouldfilter(const char* ip, long int time, bool instant);
+   void loadattackers(string infile);
+   void loadtraining(string infile);
+   void loadzone(string infile);
+--- upstream/hcf.cc
++++ adapter/hcf.cc
+@@ -8,11 +8,11 @@
+ // for 20151130 dataset set CORRECT to 1
+ #define CORRECT 0
+ 
+-void HCF::updateresolver(long time, char* ip, int req)
+-{
+-}
+-
+-void HCF::processresolver(long time, char* ip, int req)
++void HCF::updateresolver(long time, const char* ip, int req)
++{
++}
++
++void HCF::processresolver(long time, const char* ip, int req)
+ {
+ }
+ 
+@@ -29,7 +29,7 @@
+   resolvers[srcc][ttl]++;
+ }
+ 
+-double HCF::shouldfilter(char* ip, long int time, bool instant)
++double HCF::shouldfilter(const char* ip, long int time, bool instant)
+ {
+ }
+    
+@@ -80,7 +80,7 @@
+       lasttime = outtime;
+     }
+   
+-  char* ips = ip.c_str();
++  const char* ips = ip.c_str();
+   int index = gettwo(ips);
+   if (ip == "")
+     return 1;
+--- upstream/hcf.hh
++++ adapter/hcf.hh
+@@ -30,11 +30,11 @@
+   // We store delimiters in this array
+   int* delimiters;
+ 
+-  void updateresolver(long time, char* ip, int req);
+-  void processresolver(long time, char* ip, int req);
++  void updateresolver(long time, const char* ip, int req);
++  void processresolver(long time, const char* ip, int req);
+   void remember(string srcc, int ttl);
+   
+-  double shouldfilter(char* ip, long int time, bool instant);
++  double shouldfilter(const char* ip, long int time, bool instant);
+   void loadattackers(string infile);
+   void loadtraining(string infile);
+   void loadcorrection(string infile);
+--- upstream/wild.cc
++++ adapter/wild.cc
+@@ -4,7 +4,7 @@
+ #include "wild.hh"
+ 
+ 
+-void Wild::updateresolver(long time, char* ip, int req)
++void Wild::updateresolver(long time, const char* ip, int req)
+ {
+   int index = gettwo(ip);
+   
+@@ -22,13 +22,13 @@
+   resolvers[index][ip].lasttime = time;
+ }
+ 
+-void Wild::processresolver(long time, char* ip, int req)
++void Wild::processresolver(long time, const char* ip, int req)
+ {
+   int index = gettwo(ip);
+   updateresolver(time, ip, req);
+ }
+   
+-double Wild::shouldfilter(char* ip, long int time, bool instant)
++double Wild::shouldfilter(const char* ip, long int time, bool instant)
+ {
+   double ratepass = 0;
+   
+@@ -85,7 +85,7 @@
+ 	break;      
+       int index = gettwo(ip);
+       auto found = resolvers[index].find(ip);
+-      record rec;
++      record rec{};
+       resolvers[index][ip] = rec;
+       record *r = &resolvers[index][ip];
+       
+@@ -130,7 +130,7 @@
+       lasttime = outtime;
+     }
+   
+-  char* ips = ip.c_str();
++  const char* ips = ip.c_str();
+   int index = gettwo(ips);
+   if (ip == "")
+     return 1;
+--- upstream/wild.hh
++++ adapter/wild.hh
+@@ -32,10 +32,10 @@
+   // We store delimiters in this array
+   int* delimiters;
+ 
+-  void updateresolver(long time, char* ip, int req);
+-  void processresolver(long time, char* ip, int req);
++  void updateresolver(long time, const char* ip, int req);
++  void processresolver(long time, const char* ip, int req);
+ 
+-  double shouldfilter(char* ip, long int time, bool instant);
++  double shouldfilter(const char* ip, long int time, bool instant);
+   void loadattackers(string infile);
+   void loadtraining(string infile);
+ public:
+--- upstream/utils.h
++++ adapter/utils.h
+@@ -72,7 +72,7 @@
+ 
+ // Utility functions
+ bool checkdigits(const char* str);
+-int gettwo(char* src);
++int gettwo(const char* src);
+ int parse(char* input, char delimiter, int** array);
+ void loadfile(char* fname, int (*process)(char*, double&, int&, int&));
+ void loadfile2(char* fname, int (*process)(char*, double&, int&, int&));
+--- upstream/utils.cc
++++ adapter/utils.cc
+@@ -1,6 +1,8 @@
+ #include "utils.h"
++#include <vector>
++#include <unistd.h>
++#include <sys/wait.h>
+ 
+-// Trim whitespaces from a string
+ string trim(string s)
+ {
+   int i = 0;
+@@ -18,7 +20,6 @@
+   return ns;
+ }
+ 
+-// Check if all chars are digits                                                        
+ bool checkdigits(const char* str)
+ {
+   for (int i=0; i<strlen(str); i++)
+@@ -29,9 +30,7 @@
+   return true;
+ }
+ 
+-// Convert IPv4 or IPv6 address into an index
+-// up to 2^16 so we can speed up hashing
+-int gettwo(char* src)
++int gettwo(const char* src)
+ {
+   int res = 0;
+   int mult = 256;
+@@ -87,10 +86,6 @@
+   return res;
+ }
+ 
+-
+-// Something like strtok but it doesn't create new
+-// strings. Instead it replaces delimiters with 0
+-// in the original string                                                               
+ int parse(char* input, char delimiter, int** array)
+ {
+   int pos = 0;
+@@ -110,426 +105,6 @@
+   return found;
+ }
+ 
+-// Load a file using pcap functionalities
+-void loadfile2(char* fname, int (*process)(char*, double&, int&, int&))
+-{
+-  long int curtime = 0;
+-  int stats = 0;
+-
+-  cout <<"loading "<< fname << endl;
+-
+-  FILE *infile = fopen(fname, "r");
+-
+-
+-  char buffer[MAXLEN];
+-  bool done = false;
+-  
+-  string cmd = "unxz -c " + (string)fname + " | loadpcap - ";
+-
+-  FILE* pipe = popen(cmd.c_str(), "r");
+-  int pkts = 0;
+-	
+-  if (!pipe) throw std::runtime_error("popen() failed!");
+-    try {
+-      double oldtime = 0;
+-      int oldlen = 0;
+-      int oldttl = 0;
+-      while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+-	if (!done)
+-	  {
+-	    double time = oldtime;
+-	    int len = oldlen;
+-	    int ttl = oldttl;
+-	    // We still read from pipe even after we are done
+-	    // because otherwise tcpdump pipe throws segfault
+-	    pkts++;
+-	    int r = process(buffer, time, len, ttl);
+-	    if (time > oldtime)
+-	      oldtime = time;
+-	    if (len > 0)
+-	      oldlen = len;
+-	    if (ttl > 0)
+-	      oldttl = ttl;
+-	  }
+-      }
+-    } catch (...) {
+-      pclose(pipe);
+-      throw;
+-    }
+-    pclose(pipe);
+-    return;  
+-}
+-
+-// Load a file using pcap functionalities
+-void loadfiletxt(char* fname, int (*process)(char*, double&, int&, int&))
+-{
+-  long int curtime = 0;
+-  int stats = 0;
+-
+-  cout <<"loading "<< fname << endl;
+-
+-  FILE *infile = fopen(fname, "r");
+-
+-
+-  char buffer[MAXLEN];
+-  bool done = false;
+-
+-  double oldtime = 0;
+-  int oldlen = 0;
+-  int oldttl = 0;
+-  while (fgets(buffer, sizeof buffer, infile) != NULL) {
+-    if (!done)
+-      {
+-	double time = oldtime;
+-	int len = oldlen;
+-	int ttl = oldttl;
+-	// We still read from pipe even after we are done
+-	// because otherwise tcpdump pipe throws segfault
+-	int r = process(buffer, time, len, ttl);
+-	if (time > oldtime)
+-	  oldtime = time;
+-	if (len > 0)
+-	  oldlen = len;
+-	if (ttl > 0)
+-	  oldttl = ttl;
+-      }
+-  }
+-  fclose(infile);
+-  return;  
+-}
+-
+-// Load a file (only requests to server in IPv4 or IPv6)
+-void loadfile(char* fname, int (*process)(char*, double&, int&, int&))
+-{
+-  long int curtime = 0;
+-  int stats = 0;
+-
+-  cout <<"loading "<< fname << endl;
+-
+-  FILE *infile = fopen(fname, "r");
+-
+-
+-  char buffer[MAXLEN];
+-  bool done = false;
+-  
+-  string cmd = "unxz -c " + (string)fname + " | tcpdump -r - -nn -tt -v \"(ip or ip6) and dst port 53 and not src port 53 and (udp or tcp) \""; 
+-  FILE* pipe = popen(cmd.c_str(), "r");
+-  if (!pipe) throw std::runtime_error("popen() failed!");
+-    try {
+-      double oldtime = 0;
+-      int oldlen = 0;
+-      int oldttl = 0;
+-      while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+-	if (!done)
+-	  {
+-	    double time = oldtime;
+-	    int len = oldlen;
+-	    int ttl = oldttl;
+-	    // We still read from pipe even after we are done
+-	    // because otherwise tcpdump pipe throws segfault
+-	    int r = process(buffer, time, len, ttl);
+-	    if (time > oldtime)
+-	      oldtime = time;
+-	    if (len > 0)
+-	      oldlen = len;
+-	    if (ttl > 0)
+-	      oldttl = ttl;
+-	  }
+-      }
+-    } catch (...) {
+-      pclose(pipe);
+-      throw;
+-    }
+-    pclose(pipe);
+-    return;
+-}
+-
+-// Load files from dir
+-void loadfiles(const char* file, int (*process)(char*, double&, int&, int&), void (*savestats)(string), string outfile, string extension, long int starttime, int TRAIN)
+-{
+-  bool done = false;
+-  cout<<"Loading dir from file "<<file<<endl;
+-  int nd = 0;
+-  int nfiles = 0;
+-  struct dirrecord dirs[100];
+-  strcpy(dirs[nd].dir,file);
+-  unsigned char isFile =0x8;
+-  dirs[nd].n = scandir(dirs[nd].dir, &(dirs[nd].namelist), filter, alphasort);
+-  if (dirs[nd].n > 0)
+-    nfiles += dirs[nd].n;
+-  cout<<"Read "<<nfiles<<" dir "<<dirs[nd].dir<<" files "<<dirs[nd].n<<endl;
+-  nd++;
+-  for (int i = 0; i<nfiles; i++)
+-    {
+-      int total = 0;
+-      int d = 0;
+-      for (; d < nd; d++)
+-        {
+-          if (total + dirs[d].n > i)
+-            break;
+-          total += dirs[d].n;
+-        }
+-      int nf = i - total;
+-      char filename[200];
+-      long now = time(0);
+-      sprintf(filename, "%s/%s", dirs[d].dir, dirs[d].namelist[nf]->d_name);
+-      // Assumed file name structure is 20170221-033949-00603104.lax.pcap.xz            
+-      // Check if the file ends in xz, if not drop it                                   
+-      if(((string)filename).substr(((string)filename).find_last_of(".") + 1) != "xz")
+-        {
+-          continue;
+-        }
+-      // We assume that all xz files in a directory should be processed. If extension is specified
+-      // we will drop files that don't have a given location extension, e.g., lax       
+-      if (extension != "" && ((string)filename).find(extension) == string::npos)
+-        {
+-          continue;
+-        }
+-      long myepoch = getepoch(dirs[d].namelist[nf]->d_name);
+-      cout<<"Epoch "<<myepoch<<" starttime "<<starttime<<" name "<<dirs[d].namelist[nf]->d_name<<endl;
+-      if (myepoch < starttime - 300)
+-        {
+-          continue;
+-        }
+-      if (myepoch >=  starttime + TRAIN)
+-        {
+-          done = true;
+-        }
+-      if (done)
+-        break;
+-      cout<<"Will process "<<filename<<" time "<<time(0)<<endl;
+-      loadfile2(filename, process);
+-      long diff = time(0) - now;
+-    }
+-  savestats(outfile);
+-}
+-
+-// Load text files from dir
+-void readfiles(const char* file, int (*process)(char*, double&, int&, int&), void (*savestats)(string), string outfile, string extension, long int starttime, int TRAIN)
+-{
+-  bool done = false;
+-  cout<<"Loading dir from file "<<file<<endl;
+-  int nd = 0;
+-  int nfiles = 0;
+-  struct dirrecord dirs[100];
+-  strcpy(dirs[nd].dir,file);
+-  unsigned char isFile =0x8;
+-  dirs[nd].n = scandir(dirs[nd].dir, &(dirs[nd].namelist), filter, alphasort);
+-  if (dirs[nd].n > 0)
+-    nfiles += dirs[nd].n;
+-  cout<<"Read "<<nfiles<<" dir "<<dirs[nd].dir<<" files "<<dirs[nd].n<<endl;
+-  nd++;
+-  for (int i = 0; i<nfiles; i++)
+-    {
+-      int total = 0;
+-      int d = 0;
+-      for (; d < nd; d++)
+-        {
+-          if (total + dirs[d].n > i)
+-            break;
+-          total += dirs[d].n;
+-        }
+-      int nf = i - total;
+-      char filename[200];
+-      long now = time(0);
+-      sprintf(filename, "%s/%s", dirs[d].dir, dirs[d].namelist[nf]->d_name);
+-      // Assumed file name structure is 20170221-033949-00603104.lax.pcap.xz            
+-      // Check if the file ends in xz, if not drop it                                   
+-      if(((string)filename).substr(((string)filename).find_last_of(".") + 1) != "txt")
+-        {
+-          continue;
+-        }
+-      // We assume that all xz files in a directory should be processed. If extension is specified
+-      // we will drop files that don't have a given location extension, e.g., lax       
+-      if (extension != "" && ((string)filename).find(extension) == string::npos)
+-        {
+-          continue;
+-        }
+-      long myepoch = getepoch(dirs[d].namelist[nf]->d_name);
+-      cout<<"Epoch "<<myepoch<<" starttime "<<starttime<<" name "<<dirs[d].namelist[nf]->d_name<<endl;
+-      if (myepoch < starttime - 300)
+-        {
+-          continue;
+-        }
+-      if (myepoch >=  starttime + TRAIN)
+-        {
+-          done = true;
+-        }
+-      if (done)
+-        break;
+-      cout<<"Will process "<<filename<<" time "<<time(0)<<endl;
+-      loadfiletxt(filename, process);
+-      long diff = time(0) - now;
+-    }
+-  savestats(outfile);
+-}
+-
+-const int NQ=10;
+-char* querytypes[NQ]= {"A?", "AAAA?", "CNAME?", "PTR?", "NS?", "SOA?", "MX?", "DS?", "SRV?", "TXT?"};
+-
+-bool shouldprocess(char* buffer, double& outtime, int& outlen, int*& delimiters, string& ip,
+-		   double starttime, int TRAIN, bool& isquery, char* queryname, int& outttl)
+-{
+-
+-
+-  char saveline[MAXLEN];
+-  strcpy(saveline,buffer);
+-
+-  isquery = false;
+-  for (int i = 0; i<NQ; i++)
+-    {
+-      char* ptr = strstr(saveline, querytypes[i]);
+-      if (ptr != 0)
+-	{
+-	  isquery = true;
+-	  break;
+-	}
+-    }
+-
+-  if (!isquery)
+-    queryname[0] = 0;
+-  int n = parse(buffer,' ', &delimiters);
+-  if (isquery)
+-    {
+-      int found = -1;
+-      for (int i = 0; i<n; i++)
+-	{
+-	  for (int j = 0; j<NQ; j++)
+-	    if (strstr(buffer+delimiters[i], querytypes[j]) != 0)
+-	    {
+-	      found = i+1;
+-	      break;
+-	    }
+-	}
+-      if (found > -1)
+-	strcpy(queryname, buffer+delimiters[found]);
+-    }
+-  
+-  char* r = strstr(buffer+delimiters[0], "IP");
+-  char* r6 = strstr(buffer+delimiters[0], "IP6");
+-
+-  double time = 0;
+-  string ipport;
+-  int len = 0;
+-  int ttl = 0;
+-  int i = 0;
+-  if ((int)r != 0 || (int)r6 != 0)
+-    {
+-      time = atof(buffer);
+-      char clen[MAXLEN];
+-      char cttl[MAXLEN];
+-      int count = 0;
+-      int tindex = -1;
+-
+-      for (; i<=n; i++)
+-	{
+-	  if (strstr(buffer+delimiters[i], "("))
+-	    count++;
+-	  if (strstr(buffer+delimiters[i], "ttl") || strstr(buffer+delimiters[i], "hlim"))
+-	    tindex = i+1;
+-	  if (strstr(buffer+delimiters[i], ")"))
+-	    {
+-	      count --;
+-	      if (count <= 0)
+-		{
+-		  i++;
+-		  break;
+-		}
+-	    }
+-	}
+-
+-      strcpy(clen, buffer+delimiters[i-1]);
+-      clen[strlen(clen)-2] = 0;
+-      if (tindex > -1)
+-	{
+-	  strcpy(cttl, buffer+delimiters[tindex]);
+-	  int cl = strlen(cttl);
+-	  if (cttl[strlen(cttl) - 1] == ',')
+-	    cl--;
+-	  
+-	  cttl[cl] = 0;
+-	  ttl = atoi(cttl);
+-	}
+-      len = atoi(buffer+delimiters[i-1]);
+-      
+-      if (time == 0)
+-	{
+-	  time = outtime;
+-	}
+-      else
+-	{
+-	  outtime = time;
+-	}
+-    }
+-  else
+-    time = outtime;
+-
+-
+-  if (len == 0)
+-    len = outlen;
+-  if (ttl == 0)
+-    ttl = outttl;
+-  
+-  outlen = len;
+-  outttl = ttl;
+-  
+-  if ((int)r == 0 || (int)r6 != 0)
+-    {
+-      if ((int)r6 == 0)
+-	{
+-	  i = 3;
+-	}
+-      string ipport = buffer+delimiters[i];
+-      
+-      int pos = ipport.find_last_of(".");
+-      if (pos <= 0)
+-	{
+-	  return false;
+-	}
+-
+-      char srcip[MAXLEN];
+-      strncpy(srcip,ipport.c_str(),pos);
+-      srcip[pos] = 0;
+-      if (!checkdigits(ipport.c_str()+pos+1))
+-	{
+-	  return false;
+-	}
+-      ip = srcip;
+-
+-      i += 2;
+-      if (i > n)
+-	{
+-	  return false;
+-	}
+-
+-	  
+-
+-      ipport = buffer+delimiters[i];
+-      pos = ipport.find_last_of(".");
+-      if (pos <= 0)
+-	{
+-	  return false;
+-	}
+-      int posc = ipport.find_last_of(":");
+-      if (posc >= 0)
+-	ipport[posc] = 0;
+-
+-      if (!checkdigits(ipport.c_str()+pos+1))
+-	{
+-	  return false;
+-	}
+-    }
+-  
+-  if (time > 0 && time < starttime)
+-    return false;
+-  
+-  if (time >= starttime + TRAIN)
+-      return false;
+-  
+-  return true;
+-}
+-
+-// More elegant way to process with libpcap
+ bool shouldprocess2(char* buffer, double& outtime, int& outlen, int*& delimiters, string& ip,
+ 		   double starttime, int TRAIN, bool& isquery, char* queryname, int& outttl)
+ {
+@@ -559,36 +134,33 @@
+   return true;
+ }
+ 
+-
+-
+-// Filter files with a given name
+-int filter(const struct dirent *dir)
+-{
+-  const char *s = dir->d_name;
+-  if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
+-    return 1;
+-  else
+-    return 0;
++// Event transport: optional forked replay shares only an identical benign prefix.
++// Each child inherits the exact upstream runtime state and then sees one test.
++static void replayfile(const string& file,const string& output,
++ int (*process)(char*,double&,int&,int&)) {
++ ifstream in(file); ofstream out(output,ios::binary);
++ if(!in||!out){cerr<<"Cannot read/write events\n";exit(2);}
++ string line;double t=0;int len=0,ttl=0;
++ while(getline(in,line)){
++  vector<char> data(line.begin(),line.end());data.push_back(0);
++  int result=process(data.data(),t,len,ttl);out.put(result==2?1:0);
++ }
+ }
+-
+-// Get epoch from filename
+-unsigned long getepoch(string filename)
+-{
+-  int pos1 = filename.find("-");
+-  int pos2 = filename.find("-", pos1+1);
+-  //20170221-033949-00603104.lax.pcap.xz
+-  string date = filename.substr(0, pos1);
+-  string clock = filename.substr(pos1+1, pos2-pos1-1);
+-  struct tm t;
+-  time_t epoch;
+-  t.tm_year = (atoi(date.c_str()) / 10000) - 1900;
+-  t.tm_mon = ((atoi(date.c_str()) % 10000)/100) - 1;
+-  t.tm_mday = atoi(date.c_str()) % 100;
+-  t.tm_hour = (atoi(clock.c_str()) / 10000);
+-  t.tm_min = ((atoi(clock.c_str()) % 10000)/100);
+-  t.tm_sec = atoi(clock.c_str()) % 100;
+-  t.tm_isdst = 0;
+-  epoch = mktime(&t) - timezone;
+-  return epoch;
++void readfiles(const char* file, int (*process)(char*, double&, int&, int&),
++ void (*savestats)(string), string, string, long int, int) {
++ const char* output=getenv("DDIDD_DECISIONS");if(!output){cerr<<"Missing decisions path\n";exit(2);}
++ replayfile(file,output,process);
++ const char* batch=getenv("DDIDD_BATCH_FILE");if(!batch)return;
++ ifstream cases(batch);string line;
++ while(getline(cases,line)){
++  istringstream row(line);string input,out,log;
++  getline(row,input,'\t');getline(row,out,'\t');getline(row,log,'\t');
++  cout.flush();cerr.flush();fflush(nullptr);
++  pid_t pid=fork();if(pid<0)exit(3);
++  if(pid==0){
++   if(!freopen(log.c_str(),"w",stdout))exit(4);
++   replayfile(input,out,process);cout.flush();fflush(nullptr);exit(0);
++  }
++  int status=0;if(waitpid(pid,&status,0)<0 || !WIFEXITED(status) || WEXITSTATUS(status)!=0)exit(5);
++ }
+ }
+-
